@@ -61,7 +61,7 @@ int main() {
     for (int i = 0; i < SCREEN_WIDTH * SCREEN_HEIGHT; i++)
       screen[i] = ' ';
 
-    // Process and Project each vertex
+    // 2. Process and Project each vertex
     std::vector<std::pair<int, int>> projectedPoints;
     for (Vector3 v : pyramid) {
       Vector3 rotated = v.rotateY(angle);
