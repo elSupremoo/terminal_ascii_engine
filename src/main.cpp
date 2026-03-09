@@ -48,7 +48,6 @@ int main() {
 
     Camera cam;
     cam.pos = Vector3{0.0f, 0.0f, 0.0f};
-
     Renderer renderer(SCREEN_WIDTH, SCREEN_HEIGHT, FOV_DEGREES);
 
     std::cout << "\x1b[2J"; // clear screen
@@ -82,7 +81,6 @@ int main() {
         // frame limiter ~30fps
         std::this_thread::sleep_for(std::chrono::milliseconds(33));
     }
-
     input_restore();
     return 0;
 }
