@@ -1,100 +1,88 @@
 #include "../include/Vector3.h"
+#include "../include/Scene.h"
+#include "../include/Sphere.h"
+#include "../include/Cylinder.h"
+#include "../include/Torus.h"
+#include "../include/Plane.h"
+#include "../include/Tetrahedron.h"
+#include "../include/Camera.h"
+
+#include "../src/Renderer.h"
+#include "../src/Input.h"
+
 #include <chrono>
 #include <cmath>
 #include <iostream>
 #include <thread>
-#include <utility>
-#include <vector>
+#include <memory>
+
+#ifdef _WIN32
+#include <windows.h>
+#endif
 
 const int SCREEN_WIDTH = 80;
 const int SCREEN_HEIGHT = 40;
-const float FOV = 20.0f;
-
-// Bresenham algorithm to draw a line between two points
-void drawLine(int x0, int y0, int x1, int y1, char *screen) {
-  int dx = abs(x1 - x0), sx = x0 < x1 ? 1 : -1;
-  int dy = -abs(y1 - y0), sy = y0 < y1 ? 1 : -1;
-  int err = dx + dy, e2;
-
-  while (true) {
-    if (x0 >= 0 && x0 < SCREEN_WIDTH && y0 >= 0 && y0 < SCREEN_HEIGHT) {
-      screen[y0 * SCREEN_WIDTH + x0] = '#';
-    }
-    if (x0 == x1 && y0 == y1)
-      break;
-    e2 = 2 * err;
-    if (e2 >= dy) {
-      err += dy;
-      x0 += sx;
-    }
-    if (e2 <= dx) {
-      err += dx;
-      y0 += sy;
-    }
-  }
-}
+const float FOV_DEGREES = 60.0f;
 
 int main() {
-  // 1. Define the 5 vertices of a Pyramid
-  std::vector<Vector3> pyramid = {
-      {0.0f, 1.0f, 0.0f},    // 0: Apex (Top)
-      {-1.0f, -1.0f, -1.0f}, // 1: Base Bottom Left
-      {1.0f, -1.0f, -1.0f},  // 2: Base Bottom Right
-      {1.0f, -1.0f, 1.0f},   // 3: Base Top Right
-      {-1.0f, -1.0f, 1.0f}   // 4: Base Top Left
-  };
+#ifdef _WIN32
+    HANDLE hOut = GetStdHandle(STD_OUTPUT_HANDLE);
+    DWORD dwMode = 0;
+    GetConsoleMode(hOut, &dwMode);
+    dwMode |= ENABLE_VIRTUAL_TERMINAL_PROCESSING;
+    SetConsoleMode(hOut, dwMode);
+#endif
 
-  int edges[8][2] = {
-      {0, 1}, {0, 2}, {0, 3}, {0, 4}, // Slopes from apex to base
-      {1, 2}, {2, 3}, {3, 4}, {4, 1}  // The square base
-  };
+    input_init();
 
-  char screen[SCREEN_WIDTH * SCREEN_HEIGHT];
-  float angle = 0.0f;
+    Scene scene;
+    // Add a ground plane and a few spaced-out objects
+    scene.add(std::make_unique<Plane>(Vector3{0.0f, -1.5f, 0.0f}, Vector3{0.0f, 1.0f, 0.0f}));
 
-  // Hard clear the terminal before the engine starts
-  std::cout << "\x1b[2J";
+    scene.add(std::make_unique<Sphere>(Vector3{0.5f, 0.0f, 9.0f}, 2.0f));
+    scene.add(std::make_unique<Cylinder>(Vector3{-5.0f, 0.0f, 12.0f}, 0.9f, 3.0f));
+    scene.add(std::make_unique<Torus>(Vector3{6.0f, 0.0f, 15.0f}, 3.0f, 0.6f));
 
-  // game Loop
-  while (true) {
+    // Add a tetrahedron
+    scene.add(std::make_unique<Tetrahedron>(Vector3{0.0f, 0.8f, 15.0f}, 3.0f));
 
-    for (int i = 0; i < SCREEN_WIDTH * SCREEN_HEIGHT; i++)
-      screen[i] = ' ';
+    Camera cam;
+    cam.pos = Vector3{0.0f, 0.0f, 0.0f};
 
-    // Process and Project each vertex
-    std::vector<std::pair<int, int>> projectedPoints;
-    for (Vector3 v : pyramid) {
-      Vector3 rotated = v.rotateY(angle);
-      rotated.z += 2.0f; // Push away from camera
+    Renderer renderer(SCREEN_WIDTH, SCREEN_HEIGHT, FOV_DEGREES);
 
-      int x_proj = (SCREEN_WIDTH / 2) + (rotated.x / rotated.z) * FOV * 2;
-      int y_proj = (SCREEN_HEIGHT / 2) - (rotated.y / rotated.z) * FOV;
+    std::cout << "\x1b[2J"; // clear screen
 
-      projectedPoints.push_back({x_proj, y_proj});
+    bool running = true;
+    auto last = std::chrono::high_resolution_clock::now();
+
+    while (running) {
+        // input
+        int c = input_poll();
+        if (c != -1) {
+            // WASD movement
+            if (c == 'w' || c == 'W') cam.pos = cam.pos + Vector3{0.0f, 0.0f, 0.3f}.rotateY(cam.yaw);
+            if (c == 's' || c == 'S') cam.pos = cam.pos + Vector3{0.0f, 0.0f, -0.3f}.rotateY(cam.yaw);
+            if (c == 'a' || c == 'A') cam.pos = cam.pos + Vector3{-0.3f, 0.0f, 0.0f}.rotateY(cam.yaw);
+            if (c == 'd' || c == 'D') cam.pos = cam.pos + Vector3{0.3f, 0.0f, 0.0f}.rotateY(cam.yaw);
+            if (c == 27) { // ESC
+                running = false;
+            }
+            // arrow keys (POSIX will deliver escape sequences; basic support on Windows not implemented here)
+            if (c == 'j') cam.yaw -= 0.1f; // left
+            if (c == 'l') cam.yaw += 0.1f; // right
+            if (c == 'i') cam.pitch += 0.05f; // up
+            if (c == 'k') cam.pitch -= 0.05f; // down
+        }
+
+        // render
+        std::string frame = renderer.render(scene, cam);
+        std::cout << frame << std::flush;
+
+        // frame limiter ~30fps
+        std::this_thread::sleep_for(std::chrono::milliseconds(33));
     }
 
-    // 3. Draw the lines to the buffer
-    for (auto &edge : edges) {
-      int p1 = edge[0];
-      int p2 = edge[1];
-      drawLine(projectedPoints[p1].first, projectedPoints[p1].second,
-               projectedPoints[p2].first, projectedPoints[p2].second, screen);
-    }
-
-    std::string frame = "\x1b[H"; // Reset cursor to top-left
-    for (int i = 0; i < SCREEN_WIDTH * SCREEN_HEIGHT; i++) {
-      frame += screen[i];
-      // line break at the end of each row
-      if (i % SCREEN_WIDTH == SCREEN_WIDTH - 1) {
-        frame += '\n';
-      }
-    }
-
-    std::cout << frame << std::flush;
-
-    angle += 0.05f;
-    std::this_thread::sleep_for(std::chrono::milliseconds(16));
-  }
-
-  return 0;
+    input_restore();
+    return 0;
 }
