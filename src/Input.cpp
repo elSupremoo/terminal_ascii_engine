@@ -18,9 +18,11 @@ int input_poll() {
 }
 
 #else
+#include <sys/select.h>
+#include <sys/time.h>
+#include <sys/types.h>
 #include <termios.h>
 #include <unistd.h>
-#include <fcntl.h>
 
 static struct termios orig_term;
 
@@ -30,20 +32,25 @@ void input_init() {
   newt = orig_term;
   newt.c_lflag &= ~(ICANON | ECHO);
   tcsetattr(STDIN_FILENO, TCSANOW, &newt);
-  // set non-blocking
-  int flags = fcntl(STDIN_FILENO, F_GETFL, 0);
-  fcntl(STDIN_FILENO, F_SETFL, flags | O_NONBLOCK);
 }
 
-void input_restore() {
-  tcsetattr(STDIN_FILENO, TCSANOW, &orig_term);
-}
+void input_restore() { tcsetattr(STDIN_FILENO, TCSANOW, &orig_term); }
 
 int input_poll() {
-  unsigned char c;
-  ssize_t r = read(STDIN_FILENO, &c, 1);
-  if (r <= 0) return -1;
-  return (int)c;
+  struct timeval tv = {0L, 0L};
+  fd_set fds;
+  FD_ZERO(&fds);
+  FD_SET(STDIN_FILENO, &fds);
+
+  if (select(STDIN_FILENO + 1, &fds, NULL, NULL, &tv) > 0) {
+    if (FD_ISSET(STDIN_FILENO, &fds)) {
+      unsigned char c;
+      if (read(STDIN_FILENO, &c, 1) > 0) {
+        return (int)c;
+      }
+    }
+  }
+  return -1;
 }
 
 #endif

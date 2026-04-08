@@ -49,7 +49,7 @@ Open an MSYS or MinGW shell and run from the `src` directory:
 
 ```bash
 mkdir -p ../build
-g++ -std=c++17 -O2 -I../include *.cpp -static -static-libgcc -static-libstdc++ -o ../build/ascii3d.exe
+g++ -std=c++17 -O2 -I../include *.cpp -o ../build/ascii3d.exe
 ../build/ascii3d.exe
 ```
 
