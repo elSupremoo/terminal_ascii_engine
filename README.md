@@ -1,69 +1,76 @@
-# Terminal ASCII 3D Engine
+# Terminal ASCII Raycasting Engine
+*by Supreme*
 
-A compact, cross-platform ASCII-based 3D rendering engine that displays simple 3D scenes in a terminal using signed-distance-field (SDF) raymarching and ASCII characters for luminance.
+## Project Description
 
-This project is intended as an experimental, educational engine for exploring 3D rendering techniques inside plain terminal windows on Windows (MSYS/MinGW) and macOS/Linux terminals.
+A compact, cross-platform ASCII-based 3D rendering engine that displays detailed 3D scenes running strictly inside a standard terminal window. By leveraging **Signed Distance Functions (SDFs)** and raymarching mathematics, this engine procedurally draws primitives like spheres, cylinders, and infinite planes entirely out of ASCII characters mapped to lighting luminance. 
 
-## Features
+The project features a **Main Menu** system and multiple playable modes, including a "Time Attack" mini-game mode where you can shoot and destroy dynamically moving 3D objects under a time limit. It serves as an experimental framework for exploring low-level computer graphics without relying on graphical frameworks like OpenGL or DirectX.
 
-- Raymarched SDF primitives: sphere, torus (donut), capped cylinder, tetrahedron, and an infinite plane (ground).
-- Per-pixel normal estimation and simple Lambertian shading mapped to ASCII luminance characters.
-- Cross-platform non-blocking keyboard input (Windows and POSIX terminals).
-- Simple camera and free movement controls.
+## Technologies Used
 
-## Build (MSYS / MinGW on Windows)
+- **Language:** C++17
+- **Rendering Model:** Mathematical primitive Raymarching & SDFs
+- **Output:** Command Line Interface leveraging ANSI Escape Sequences for buffer clearing and text coloring.
+- **Tools:** `g++` Compiler, MSYS/MinGW environments.
+
+## Core Features
+
+- **Geometric Primitives:** Renders Spheres, Toruses, Capped Cylinders, Tetrahedrons, Planes, Boxes, and Octahedrons simultaneously.
+- **Dynamic Entities:** Features animated `MovingSphere` variants for target tracking loop systems.
+- **Interactive States:** Modular `GameState` loop partitioning the stylized Main Menu sequence from the raw 3D Gameplay rendering.
+- **Optimized Draw Calls:** Buffers entire frames to a single `std::string` block during the render pass to significantly mitigate latency and screen tearing.
+- **Input Polling:** Simple, non-blocking polling mechanics supporting intuitive keyboard event tracking.
+
+## Usage & Controls
+
+### Main Menu
+Select a scene by pressing the respective number on the keyboard.
+- `[1]`: Load Static Objects
+- `[2]`: Load Moving Objects
+- `[3]`: Load Combined Scene
+- `[4]`: Play Time Attack Mode
+- `[ESC]`: Quit the application.
+
+### In-Game (Playing State)
+- `[W]`, `[A]`, `[S]`, `[D]`: Move Camera position forwards, backwards, and strafe sideways.
+- `[I]`, `[K]`: Pitch Camera angle Up / Down
+- `[J]`, `[L]`: Yaw Camera angle Left / Right
+- `[Spacebar]`: Fire raycast to hit and destroy target geometries.
+- `[ESC]`: Return to the Main Menu.
+
+---
+
+## Setup & How to Run
+
+### Build (MSYS / MinGW on Windows)
 
 Open an MSYS or MinGW shell and run from the `src` directory:
 
 ```bash
 mkdir -p ../build
-g++ -std=c++17 -O2 -I../include *.cpp -o ../build/ascii3d.exe
+g++ -std=c++17 -O2 -I../include *.cpp -static -static-libgcc -static-libstdc++ -o ../build/ascii3d.exe
 ../build/ascii3d.exe
 ```
 
-## Build (macOS / Linux)
+### Build (macOS / Linux)
 
 From the `src` directory on macOS or Linux:
 
 ```bash
 mkdir -p ../build
-g++ -std=c++17 -O2 -I../include *.cpp -o ../build/ascii3d
+g++ -std=c++17 -O2 -I../include *.cpp -static -static-libgcc -static-libstdc++ -o ../build/engine.exe
 ./../build/ascii3d
 ```
 
-Notes:
-- Ensure `g++` (GNU C++ compiler) is installed and available on your PATH.
-- On Windows you may need to use an MSYS/MinGW environment to get a terminal that supports ANSI escape sequences.
+**System Notes:**
+- Ensure `g++` (GNU C++ Compiler) is installed and correctly mapped to your OS `PATH`.
+- The terminal emulator running the binary natively requires support for ANSI escape codes (standardized on macOS/Linux and Windows Terminals).
 
-## Usage / Controls
+---
 
-- `W` / `S`: move forward / backward
-- `A` / `D`: strafing left / right
-- `i` / `k`: pitch up / down
-- `j` / `l`: yaw left / right
-- `Esc`: exit
+## Project Structure
 
-The camera movement is intentionally simple; the code is structured so you can add smooth motion, acceleration, or mouse look later.
-
-## Project Layout
-
-- `src/` — application entry and renderer implementation.
-- `include/` — engine headers and primitive SDF implementations (`Vector3.h`, `Scene.h`, `Sphere.h`, `Torus.h`, `Cylinder.h`, `Plane.h`, `Tetrahedron.h`, etc.).
-- `build/` — output folder for the compiled binary.
-
-## Development Notes
-
-- Rendering technique: SDF raymarching is used to get consistent silhouettes for primitives (recommended for creative ASCII scenes). The renderer estimates normals numerically and applies a simple lighting model mapped to ASCII characters.
-- Terminal character aspect ratio varies by font and terminal. There is a `charAspect` constant in `src/Renderer.cpp` you can tweak to correct vertical distortion for your environment.
-- Performance: raymarching with many steps per pixel is CPU-bound. Reduce `MAX_STEPS` in `include/Scene.h` for higher frame rates; increase for more accurate results.
-
-## Suggestions / Next Steps
-
-- Add a small configuration or runtime keys to adjust `charAspect`, field-of-view, or raymarch step budget without recompiling.
-- Add additional materials, simple texturing (via patterns), and ambient occlusion approximation.
-- Implement a simple scene loader or scripting to place objects at runtime.
-
-## License
-
-This repository is provided without an explicit license. If you intend to reuse or distribute the code, add a license file (e.g., MIT) to clarify terms.
-tes
+- `src/` — Contains entry initialization and hardware execution code (`main.cpp`, `Renderer.cpp`, `Input.cpp`).
+- `include/` — Contains header structures, mathematical physics, and geometric objects (`Vector3.h`, `Scene.h`, `Sphere.h`, `MovingSphere.h`).
+- `build/` — Output directory for compiled application binaries.

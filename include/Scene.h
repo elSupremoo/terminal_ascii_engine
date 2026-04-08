@@ -20,6 +20,12 @@ struct Scene {
     }
   }
 
+  void update(float dt) {
+    for (auto& o : objects) {
+      o->update(dt);
+    }
+  }
+
   // Raymarch the scene using SDFs. Returns true if hit; sets t, normal, material, and optionally the hit object
   bool traceSDF(const Vector3& ro, const Vector3& rd, float& outT, Vector3& outNormal, int& outMat, const Object** outHitObj = nullptr) const {
     const float MAX_DIST = 200.0f;

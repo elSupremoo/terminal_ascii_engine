@@ -13,4 +13,7 @@ struct Object {
 
   // Material id 
   virtual int materialId() const { return 0; }
+
+  // Update logic for moving objects
+  virtual void update(float dt) {}
 };
