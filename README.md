@@ -7,6 +7,7 @@ A compact, cross-platform ASCII-based 3D rendering engine that displays detailed
 
 The project features a **Main Menu** system and multiple playable modes, including a "Time Attack" mini-game mode where you can shoot and destroy dynamically moving 3D objects under a time limit. It serves as an experimental framework for exploring low-level computer graphics without relying on graphical frameworks like OpenGL or DirectX.
 
+Note: DO NOT SCROLL OR MAXIMIZE THE TERMINAL, IT BREAKS THE ILLUSION
 ## Technologies Used
 
 - **Language:** C++17
