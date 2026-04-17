@@ -45,7 +45,7 @@ Select a scene by pressing the respective number on the keyboard.
 
 ### Build (MacOS)
 
-Open an MSYS or MinGW shell and run from the `src` directory:
+From the `src` directory:
 
 ```bash
 mkdir -p ../build
@@ -55,7 +55,7 @@ g++ -std=c++17 -O2 -I../include *.cpp -o ../build/ascii3d.exe
 
 ### Build (Windows)
 
-From the `src` directory on macOS or Linux:
+From the `src` directory:
 
 ```bash
 mkdir -p ../build
