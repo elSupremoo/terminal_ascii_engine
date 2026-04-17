@@ -43,24 +43,24 @@ Select a scene by pressing the respective number on the keyboard.
 
 ## Setup & How to Run
 
-### Build (MSYS / MinGW on Windows)
+### Build (MacOS)
 
 Open an MSYS or MinGW shell and run from the `src` directory:
 
 ```bash
 mkdir -p ../build
 g++ -std=c++17 -O2 -I../include *.cpp -o ../build/ascii3d.exe
-../build/ascii3d.exe
+../build/ascii3d
 ```
 
-### Build (macOS / Linux)
+### Build (Windows)
 
 From the `src` directory on macOS or Linux:
 
 ```bash
 mkdir -p ../build
 g++ -std=c++17 -O2 -I../include *.cpp -static -static-libgcc -static-libstdc++ -o ../build/engine.exe
-./../build/ascii3d
+./../build/ascii3d.exe
 ```
 
 **System Notes:**
